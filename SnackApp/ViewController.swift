@@ -28,7 +28,25 @@ class ViewController: UIViewController ,UISearchBarDelegate{
         //デバックエリアに出力
         if let searchWord = searchBar.text{
             print(searchWord)
+        searchOkashi(keyword: searchWord)
         }
         
+        
     }
+    //searchOkashiメソッド
+    //第一引数：keyword　検索したいワード
+    func searchOkashi(keyword:String){
+        //お菓子の検索キーワードをURLエンコードする
+        //guard文を使ってエンコードnilになり得る変数、オプショナル変数を安全に参照するためのguard文でアンラップする
+        guard let keyword_encode = keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+            return
+        }
+        //リクエストURL
+        guard let req_url = URL(string: "https://sysbird.jp/toriko/api/?apikey=guest&format=json&keyword=\(keyword_encode)&max=10&order=r") else {
+            return
+        }
+        
+        print(req_url)
+    }
+
 }
