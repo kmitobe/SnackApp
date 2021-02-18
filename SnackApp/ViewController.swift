@@ -8,7 +8,9 @@
 
 import UIKit
 
-class ViewController: UIViewController ,UISearchBarDelegate{
+class ViewController: UIViewController ,UISearchBarDelegate ,UITableViewDataSource{
+
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -17,6 +19,9 @@ class ViewController: UIViewController ,UISearchBarDelegate{
         searchText.delegate = self
         //プレースホルダーを設定
         searchText.placeholder = "お菓子の名前を入力してください"
+        //TableViewのdataSource
+        tableView.dataSource = self
+        
     }
 
     @IBOutlet weak var searchText: UISearchBar!
@@ -74,22 +79,23 @@ class ViewController: UIViewController ,UISearchBarDelegate{
                 //print(json)
                 //jsonが取得できているかを確認
                 if let items = json.item{
-                        //取得したアイテム分ループする
-                        for item in items{
-                            //アイテムを各変数にアンラップする
-                            if let name = item.name,let maker = item.maker,let link = item.url,let image = item.image {
-                                //タプル配列に格納する
-                                let okashi = (name ,maker ,link ,image)
-                                self.okashiList?.append(okashi)
+                    //お菓子のリストを初期化する
+                    self.okashiList?.removeAll()
+                    //取得したアイテム分ループする
+                    for item in items{
+                        //アイテムを各変数にアンラップする
+                        if let name = item.name,let maker = item.maker,let link = item.url,let image = item.image {
+                            //タプル配列に格納する
+                            let okashi = (name ,maker ,link ,image)
+                            self.okashiList?.append(okashi)
                         }
+                        //TableViewを更新する
+                        self.tableView.reloadData()
                         //デバック用に出力する
                         print("---------------")
                         self.okashiList?.forEach {print("\($0)")}
                     }
                 }
-                //取得しているお菓子の数だけタプル配列に格納
-                
-                
             }catch{
                 //エラー検知
                 print("エラーが発生しました")
@@ -115,5 +121,22 @@ class ViewController: UIViewController ,UISearchBarDelegate{
     struct ResultJson: Codable {
         //複数要素nilの可能性もある為オプショナル型で宣言
         let item:[ItemJson]?
+    }
+    //cellの総数を返すメソッド必ず記述する必要がある
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return okashiList?.count ?? 0
+    }
+    //cellに値を設定するdatasourceメソッド。必ず記述する必要がある
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        //今回表示を行う。cellオブジェクト（１行）を取得する
+        let cell = tableView.dequeueReusableCell(withIdentifier: "okashiCell", for: indexPath)
+        //cellにお菓子のタイトル設定
+        cell.textLabel?.text = okashiList?[indexPath.row].name
+        //お菓子の画像を取得
+        if let imageData = try? Data(contentsOf: okashiList![indexPath.row].image){
+            cell.imageView?.image = UIImage(data:imageData)
+        }
+        //設定済みのcellオブジェクトを画面に反映
+        return cell
     }
 }
